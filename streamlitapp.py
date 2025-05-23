@@ -15,10 +15,10 @@ def load_image(image_path):
     return encoded_image
 
 # Path to your image
-image_path = r"C:\Users\NAGARAJAN K\Desktop\download.png"  # Use raw string
+image_path = r'C:\Users\NAGARAJAN K\Desktop\desktop552025\download.png'  # Use raw string
 
 # Background image path
-background_image_path = r"C:\Users\NAGARAJAN K\Desktop\360_F_91454716_m2p0NDccj6Mu8w6IAj3v8KniuvSYlGpO.jpg"  # Use raw string for background image
+background_image_path = r"C:\Users\NAGARAJAN K\Desktop\redbus project\background.jpg" # Use raw string for background image
 
 # Encode images
 encoded_image = load_image(image_path)
@@ -43,124 +43,188 @@ def load_data():
 
 # Streamlit app
 def main():
+    # Inject custom CSS for styling
     st.markdown(
         f"""
         <style>
         body {{
             background-image: url('data:image/jpeg;base64,{encoded_background_image}');
             background-size: cover;
+            background-attachment: fixed;
+            margin: 0;
+            padding: 0;
         }}
+
         .title {{
-            color: red;
-            font-size: 3em;
-            font-weight: bold;
-            font-family: 'Courier New', Courier, monospace;
+            color: #e63946;
+            font-size: 3rem;
+            font-weight: 700;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin-bottom: 0.5rem;
         }}
         .header {{
-            color: black;
-            font-size: 1.5em;
-            font-weight: bold;
+            color: #333;
+            font-size: 1.75rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
         }}
-        th, td {{
+
+        .table-container {{
+            overflow-x: auto;
+            margin: 1.5rem 0;
+        }}
+
+        .styled-table {{
+            border-collapse: collapse;
+            width: 100%;
+            min-width: 800px;
+            background-color: #fff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }}
+        .styled-table thead tr {{
+            background-color: #006d77;
+            color: #fff;
             text-align: center;
-            padding: 30px;
-            border: 10px solid #001;
         }}
-       
-    
+        .styled-table th, .styled-table td {{
+            padding: 12px 20px;
+            border-bottom: 1px solid #e0e0e0;
+            text-align:center;
+        }}
+        .styled-table tbody tr {{
+            transition: background-color 0.2s ease-in-out;
+        }}
+        .styled-table tbody tr:nth-of-type(even) {{
+            background-color: #f7f7f7;
+        }}
+        .styled-table tbody tr:hover {{
+            background-color: #e0f7fa;
+        }}
+        .styled-table tbody tr:last-of-type {{
+            border-bottom: 2px solid #006d77;
+        }}
+        .styled-table a {{
+            color: #0077b6;
+            text-decoration: none;
+            font-weight: 500;
+        }}
+        .styled-table a:hover {{
+            text-decoration: underline;
+        }}
+        input[type="text"] {{
+            padding-left: 30px !important;
+            background: url("https://cdn-icons-png.flaticon.com/512/622/622669.png") no-repeat 5px center !important;
+            background-size: 20px 20px !important;
+        }}
         </style>
         """,
         unsafe_allow_html=True
     )
 
+    # Title and header
     st.markdown('<h1 class="title">RedBus Info</h1>', unsafe_allow_html=True)
     st.markdown('<h2 class="header">Bus Routes Information</h2>', unsafe_allow_html=True)
 
     # Load data
     data = load_data()
 
-    # Filter sidebar
+    # Sidebar filters
     st.sidebar.header('Filter Options')
-    
+
     # Route filter
-    if 'RouteName' in data.columns:
-        route_names = data['RouteName'].unique()
-        selected_route = st.sidebar.selectbox('Select Route', route_names)
-    else:
-        st.sidebar.write("No 'RouteName' column found in data.")
-
-    # Bus type filter
-    if 'Bus Type' in data.columns:
-        bus_types = data['Bus Type'].unique().tolist()
-        bus_types.insert(0, 'All')  # Add 'All' option
-        selected_bus_type = st.sidebar.selectbox('Select Bus Type', bus_types)
-    else:
-        st.sidebar.write("No 'BusType' column found in data.")
-
-    # Price range filter
-    if 'Price' in data.columns:
-        min_price = data['Price'].min()
-        max_price = data['Price'].max()
-        selected_price_range = st.sidebar.slider('Select Price Range', min_price, max_price, (min_price, max_price))
-    else:
-        st.sidebar.write("No 'Price' column found in data.")
-
-    # Star rating filter
-    if 'Rating' in data.columns:
-        min_rating = data['Rating'].min()
-        max_rating = data['Rating'].max()
-        selected_rating = st.sidebar.slider('Select Minimum Star Rating', min_rating, max_rating, min_rating)
-    else:
-        st.sidebar.write("No 'Rating' column found in data.")
-
-    # Availability filter
-    if 'Seats Available' in data.columns:
-        min_seats = data['Seats Available'].min()
-        max_seats = data['Seats Available'].max()
-        selected_seats = st.sidebar.slider('Select Minimum Seats Available', min_seats, max_seats, min_seats)
-    else:
-        st.sidebar.write("No 'Seats Available' column found in data.")
+    selected_route = st.sidebar.selectbox('Select Route', data['RouteName'].unique()) if 'RouteName' in data.columns else None
+    # Bus Type filter
+    bus_types = ['All'] + data['Bus Type'].dropna().unique().tolist() if 'Bus Type' in data.columns else []
+    selected_bus_type = st.sidebar.selectbox('Select Bus Type', bus_types) if bus_types else None
+    # Price Range filter
+    selected_price_range = st.sidebar.slider('Select Price Range', float(data['Price'].min()), float(data['Price'].max()), (float(data['Price'].min()), float(data['Price'].max()))) if 'Price' in data.columns else (0, 0)
+    # Star Rating filter
+    selected_rating = st.sidebar.slider('Select Minimum Star Rating', float(data['Rating'].min()), float(data['Rating'].max()), float(data['Rating'].min())) if 'Rating' in data.columns else 0
+    # Seat Availability filter
+    selected_seats = st.sidebar.slider('Select Minimum Seats Available', int(data['Seats Available'].min()), int(data['Seats Available'].max()), int(data['Seats Available'].min())) if 'Seats Available' in data.columns else 0
 
     # Apply filters
-    filtered_data = data
+    filtered_data = data.copy()
 
-    if 'RouteName' in data.columns:
+    if selected_route:
         filtered_data = filtered_data[filtered_data['RouteName'] == selected_route]
 
-    if 'Bus Type' in data.columns and selected_bus_type != 'All':
+    if selected_bus_type and selected_bus_type != 'All':
         filtered_data = filtered_data[filtered_data['Bus Type'] == selected_bus_type]
 
-    if 'Price' in data.columns:
-        filtered_data = filtered_data[(filtered_data['Price'] >= selected_price_range[0]) & (filtered_data['Price'] <= selected_price_range[1])]
+    filtered_data = filtered_data[
+        (filtered_data['Price'] >= selected_price_range[0]) &
+        (filtered_data['Price'] <= selected_price_range[1]) &
+        (filtered_data['Rating'] >= selected_rating) &
+        (filtered_data['Seats Available'] >= selected_seats)
+    ]
+    search_term = st.text_input("Search Bus Name or Route")
 
-    if 'Rating' in data.columns:
-        filtered_data = filtered_data[filtered_data['Rating'] >= selected_rating]
+    if search_term:
+        filtered_data = filtered_data[
+            filtered_data['Bus Name'].str.contains(search_term, case=False, na=False) |
+            filtered_data['RouteName'].str.contains(search_term, case=False, na=False)
+        ]
 
-    if 'Seats Available' in data.columns:
-        filtered_data = filtered_data[filtered_data['Seats Available'] >= selected_seats]
-
-    # Add clickable links using the RouteLink column
+    # Make route links clickable
     if 'RouteLink' in filtered_data.columns:
-        filtered_data['RouteLink'] = filtered_data.apply(
-            lambda row: f'<a href="{row["RouteLink"]}" target="_blank">{row["RouteName"]}</a>', axis=1
+            filtered_data['RouteLink'] = filtered_data.apply(
+            lambda row: f'<a href="{row["RouteLink"]}" target="_blank">{row["RouteLink"]}</a>', axis=1
         )
 
+    # Show filtered data or message
     if filtered_data.empty:
-        st.write("No buses available for the selected filters.")
+        st.warning("No buses available for the selected filters.")
     else:
-        st.write(f"Showing data for Route: {selected_route} and Bus Type: {selected_bus_type}")
-        
-        # Display DataFrame with clickable links
-        st.write(filtered_data.to_html(escape=False, index=False), unsafe_allow_html=True)
+        st.markdown(f"<div class='table-container'>{filtered_data.to_html(escape=False, index=False, classes='styled-table')}</div>", unsafe_allow_html=True)
 
-        # Optional: Show other data visualizations or information
-        st.write(f"Total Buses: {len(filtered_data)}")
+        # Summary info
+        st.success(f"Total Buses: {len(filtered_data)}")
         if 'Rating' in filtered_data.columns:
             avg_rating = filtered_data['Rating'].mean()
-            st.write(f"Average Rating: {avg_rating:.2f}")
+            full_stars = int(avg_rating)
+            half_star = avg_rating - full_stars >= 0.5
+
+            stars = '⭐' * full_stars
+            if half_star:
+                stars += '✨'  # or use '⭐' or '⭑' to indicate a half-star visually
+
+            st.info(f"Average Rating: {avg_rating:.2f}  {stars}")
         if 'Price' in filtered_data.columns:
-            avg_price = filtered_data['Price'].mean()
-            st.write(f"Average Price: {avg_price:.2f}")
+            st.info(f"Minimum Price: ₹{filtered_data['Price'].min():.2f}")
+        if 'Price' in filtered_data.columns:
+            st.info(f"Maximum Price: ₹{filtered_data['Price'].max():.2f}")
+        if 'Duration' in filtered_data.columns and 'Bus Name' in filtered_data.columns:
+            # If Duration is in HH:MM format, convert it to minutes
+            def duration_to_minutes(dur_str):
+                if isinstance(dur_str, str):
+                    # Example: '05h 25m'
+                    hours = 0
+                    minutes = 0
+                    if 'h' in dur_str:
+                        parts = dur_str.split('h')
+                        hours = int(parts[0].strip())
+                        if len(parts) > 1 and 'm' in parts[1]:
+                            minutes = int(parts[1].replace('m', '').strip())
+                    elif 'm' in dur_str:
+                        minutes = int(dur_str.replace('m', '').strip())
+                    return hours * 60 + minutes
+                else:
+                    # If it's already numeric or missing, return 0 or convert safely
+                    try:
+                        return float(dur_str)
+                    except:
+                        return 0
+
+
+            filtered_data['Duration_Minutes'] = filtered_data['Duration'].apply(duration_to_minutes)
+            min_duration_idx = filtered_data['Duration_Minutes'].idxmin()
+            least_duration_bus_name = filtered_data.loc[min_duration_idx, 'Bus Name']
+            least_duration_value = filtered_data.loc[min_duration_idx, 'Duration']
+
+            st.info(f"Fastest Bus: {least_duration_bus_name} (Duration: {least_duration_value})")
+
 
 if __name__ == '__main__':
     main()
